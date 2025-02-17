@@ -1,3 +1,11 @@
+console.log("JavaScript is loaded")
+
+let currentDate = new Date()
+
+const startDate = new Date("2025-02-18")
+const endDate = new Date("2025-03-10")
+const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+
 const dailyMessages = [
   "يا أمي يا غالية، ربنا يتقبل عمرتك ويجعلها خير وبركة عليكي وعلينا",
   "بحبك يا أحلى أم في الدنيا، يارب تكوني مبسوطة في رحلتك",
@@ -8,7 +16,7 @@ const dailyMessages = [
   "كل ما بفتكرك بدعيلك ربنا يحفظك ويرجعك لينا بالسلامة",
   "يارب تكوني بتحسي بالفرحة والإيمان في كل لحظة من عمرتك",
   "مفيش أجمل من إنك تكوني في بيت ربنا، ربنا يتقبل منك",
-  "عارف إنك بتدعيلنا هناك، وإحنا كمان مش بننساكي من دعوتنا",
+  "عارفة إنك بتدعيلنا هناك، وإحنا كمان مش بننساكي من دعوتنا",
   "يا رب ترجعي لينا وكلك نور وبركة من زيارتك للحرم",
   "كل يوم بيعدي وإحنا بنعد الأيام لحد ما ترجعي بالسلامة",
   "ربنا يجعل رحلتك دي سبب في سعادتك في الدنيا والآخرة",
@@ -52,12 +60,10 @@ const birthdayMessages = [
   "عيد ميلاد سعيد يا أغلى الناس! دعواتنا ليكي من هنا وانتي في أطهر بقعة",
 ]
 
-const startDate = new Date("2025-02-17")
-const endDate = new Date("2025-03-10")
-const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-
-let currentDate = new Date("2025-02-18")
-let isTestMode = false
+function updateWebsite() {
+  currentDate = new Date()
+  updateState(currentDate)
+}
 
 function updateState(date) {
   const progressBar = document.querySelector(".progress-bar")
@@ -90,7 +96,6 @@ function updateState(date) {
     document.getElementById("dailyDua").style.display = "none"
   }
 
-  // تحديث التحقق من عيد الميلاد وعرض الرسائل
   if (isBirthday(date)) {
     birthdayMessagesElement.style.display = "block"
     const birthdayMessagesList = document.getElementById("birthdayMessagesList")
@@ -144,39 +149,9 @@ async function updatePrayerTimes(date) {
   }
 }
 
-// function toggleTestMode() {
-//   isTestMode = !isTestMode
-//   const toggleButton = document.getElementById("toggleTestMode")
-//   const dateInputContainer = document.getElementById("dateInputContainer")
+// تحديث الموقع كل دقيقة
+setInterval(updateWebsite, 60000)
 
-//   if (isTestMode) {
-//     toggleButton.textContent = "إيقاف وضع الاختبار"
-//     dateInputContainer.style.display = "block"
-//     document.getElementById("testDate").valueAsDate = currentDate
-//   } else {
-//     toggleButton.textContent = "تفعيل وضع الاختبار"
-//     dateInputContainer.style.display = "none"
-//     currentDate = new Date()
-//   }
-
-//   updateState(currentDate)
-// }
-
-// document.getElementById("toggleTestMode").addEventListener("click", toggleTestMode)
-
-// document.getElementById("testDate").addEventListener("change", (e) => {
-//   if (isTestMode) {
-//     currentDate = new Date(e.target.value)
-//     updateState(currentDate)
-//   }
-// })
-
-setInterval(() => {
-  currentDate = new Date()
-  updateState(currentDate)
-}, 60000)
-
-document.addEventListener("DOMContentLoaded", () => {
-  updateState(currentDate)
-})
+// التحديث الأولي عند تحميل الصفحة
+document.addEventListener("DOMContentLoaded", updateWebsite)
 
