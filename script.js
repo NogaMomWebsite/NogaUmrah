@@ -1,9 +1,32 @@
 console.log("JavaScript is loaded")
 
-let currentDate = new Date()
+const firebaseConfig = {
+  apiKey: "AIzaSyB0jUmQQxMIpAZCVFBa4oq3HOJTrJh_w5A",
+  authDomain: "umrahwebsite-f9671.firebaseapp.com",
+  projectId: "umrahwebsite-f9671",
+  storageBucket: "umrahwebsite-f9671.firebasestorage.app",
+  messagingSenderId: "744455640371",
+  appId: "1:744455640371:web:b2527bcd51187e91ac5a46",
+  measurementId: "G-5S9S9XMNXY"
+};
 
-const startDate = new Date("2025-02-18")
-const endDate = new Date("2025-03-10")
+// تهيئة Firebase
+firebase.initializeApp(firebaseConfig)
+const db = firebase.firestore()
+const { getDocs, collection } = firebase.firestore;
+
+// استخدام التاريخ الحالي بتوقيت مكة المكرمة
+function getCurrentDateInMecca() {
+  const now = new Date()
+  const meccaOffset = 3 // توقيت مكة المكرمة هو UTC+3
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000
+  return new Date(utc + 3600000 * meccaOffset)
+}
+
+let currentDate = getCurrentDateInMecca()
+
+const startDate = new Date("2025-02-17T00:00:00+03:00")
+const endDate = new Date("2025-03-10T23:59:59+03:00")
 const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
 
 const dailyMessages = [
@@ -16,7 +39,7 @@ const dailyMessages = [
   "كل ما بفتكرك بدعيلك ربنا يحفظك ويرجعك لينا بالسلامة",
   "يارب تكوني بتحسي بالفرحة والإيمان في كل لحظة من عمرتك",
   "مفيش أجمل من إنك تكوني في بيت ربنا، ربنا يتقبل منك",
-  "عارفة إنك بتدعيلنا هناك، وإحنا كمان مش بننساكي من دعوتنا",
+  "عارف إنك بتدعيلنا هناك، وإحنا كمان مش بننساكي من دعوتنا",
   "يا رب ترجعي لينا وكلك نور وبركة من زيارتك للحرم",
   "كل يوم بيعدي وإحنا بنعد الأيام لحد ما ترجعي بالسلامة",
   "ربنا يجعل رحلتك دي سبب في سعادتك في الدنيا والآخرة",
@@ -52,16 +75,32 @@ const dailyDuas = [
   "اللهم اجعل آخر دعاء أمي في عمرتها مستجاب واختم لها بالخيرات",
 ]
 
-const birthdayMessages = [
-  "كل سنة وانتي طيبة يا أحلى أم في الدنيا! عيد ميلاد سعيد وانتي في بيت ربنا",
-  "يا بخت السنة دي بيكي يا أمي، عيد ميلاد سعيد وعمرة مباركة",
-  "عيد ميلادك السنة دي مميز يا ست الكل، ربنا يديم عليكي الصحة والسعادة",
-  "أجمل هدية ليكي في عيد ميلادك إنك في الحرم، كل سنة وانتي بخير يا أمي",
-  "عيد ميلاد سعيد يا أغلى الناس! دعواتنا ليكي من هنا وانتي في أطهر بقعة",
-]
+async function loadBirthdayMessages() {
+  const birthdayMessagesElement = document.getElementById("birthdayMessages");
+  const birthdayMessagesList = document.getElementById("birthdayMessagesList");
+  
+  db.collection("birthdayMessages").onSnapshot((snapshot) => {
+    let newMessages = [];
+    
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const message = document.createElement("p");
+        message.textContent = change.doc.data().message;
+        newMessages.push(message);
+      }
+    });
+
+    if (newMessages.length > 0) {
+      newMessages.forEach((msg) => birthdayMessagesList.appendChild(msg));
+      birthdayMessagesElement.style.display = "block";
+    }
+  }, (error) => {
+    console.error("خطأ في جلب رسائل عيد الميلاد:", error);
+  });
+}
 
 function updateWebsite() {
-  currentDate = new Date()
+  currentDate = getCurrentDateInMecca()
   updateState(currentDate)
 }
 
@@ -72,9 +111,16 @@ function updateState(date) {
   const duaText = document.getElementById("duaText")
   const birthdayMessagesElement = document.getElementById("birthdayMessages")
 
+  console.log("Current date:", date)
+  console.log("Start date:", startDate)
+  console.log("End date:", endDate)
+
   if (isDateBetween(date, startDate, endDate)) {
     const elapsedDays = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
     const progress = (elapsedDays / totalDays) * 100
+
+    console.log("Elapsed days:", elapsedDays)
+    console.log("Progress:", progress)
 
     progressBar.style.width = `${progress}%`
     progressText.textContent = `باقي ${Math.ceil(totalDays - elapsedDays)} أيام على نهاية الرحلة`
@@ -95,15 +141,6 @@ function updateState(date) {
     document.getElementById("dailyMessage").style.display = "none"
     document.getElementById("dailyDua").style.display = "none"
   }
-
-  if (isBirthday(date)) {
-    birthdayMessagesElement.style.display = "block"
-    const birthdayMessagesList = document.getElementById("birthdayMessagesList")
-    birthdayMessagesList.innerHTML = birthdayMessages.map((msg) => `<p>${msg}</p>`).join("")
-  } else {
-    birthdayMessagesElement.style.display = "none"
-  }
-
   updatePrayerTimes(date)
 }
 
@@ -153,5 +190,8 @@ async function updatePrayerTimes(date) {
 setInterval(updateWebsite, 60000)
 
 // التحديث الأولي عند تحميل الصفحة
-document.addEventListener("DOMContentLoaded", updateWebsite)
+document.addEventListener("DOMContentLoaded", () => {
+  updateWebsite();
+  loadBirthdayMessages();
+});
 
